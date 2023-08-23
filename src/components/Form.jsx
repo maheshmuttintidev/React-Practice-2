@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Dashboard } from "./Dashboard";
+import { login } from "../apis/loginAuth";
 
 export function Form() {
   const [username, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [showDashboard, setShowDashboard] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   function handleChangeUserName(event) {
     const value = event.target.value;
@@ -18,21 +19,26 @@ export function Form() {
     setPassword(value);
   }
 
-  function handleSubmit() {
-    const payload = {
-      username: username,
-      password: password,
-    };
-    console.log("🚀 ~ file: Form.jsx:34 ~ handleSubmit ~ payload:", payload);
-    setShowDashboard(true);
-  }
+  async function handleSubmit() {
+    setErrorMessage('')
+    try {
+      const loginPayload = {
+        username: username,
+        password: password,
+      };
 
-  if (showDashboard === true) {
-    return <Dashboard username={username} password={password} />;
+      const data = await login(loginPayload);
+      console.log("🚀 ~ file: Form.jsx:30 ~ handleSubmit ~ data:", data);
+      setUserData(data);
+    } catch (error) {
+      console.log("🚀 ~ file: Form.jsx:33 ~ handleSubmit ~ error:", error);
+      setErrorMessage(error.message);
+    }
   }
 
   return (
     <div>
+      {errorMessage ? <p style={{ color: "red" }}>{errorMessage}</p> : null}
       <input
         type="text"
         name="username"
@@ -55,6 +61,36 @@ export function Form() {
       <button type="submit" value="Login" onClick={handleSubmit}>
         Login
       </button>
+
+      {userData ? (
+        <div>
+          <h2>User Details</h2>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "40px",
+              border: "3px solid red",
+              background: "green",
+            }}
+          >
+            <div>
+              <img
+                src={userData.image}
+                height={50}
+                width={50}
+                style={{ borderRadius: "50%" }}
+              />
+            </div>
+
+            <ul style={{ listStyle: "none" }}>
+              <li>Full Name: {userData.firstName + "" + userData.lastName}</li>
+              <li>Gender: {userData.gender}</li>
+            </ul>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
